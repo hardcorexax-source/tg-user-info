@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram User Info</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--tg-theme-text-color, #000000);
+            text-align: center;
+        }
+
+        .section {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--tg-theme-text-color, #000000);
+            border-bottom: 2px solid var(--tg-theme-hint-color, #999999);
+            padding-bottom: 8px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--tg-theme-hint-color, #666666);
+            flex: 0 0 40%;
+        }
+
+        .info-value {
+            color: var(--tg-theme-text-color, #000000);
+            flex: 1;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: block;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        .error {
+            background: #ff3b30;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .json-view {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .refresh-btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .refresh-btn:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Информация о пользователе</h1>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="content"></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        
+        function displayUserInfo() {
+            const content = document.getElementById('content');
+            const errorDiv = document.getElementById('error');
+            
+            // Проверяем, доступен ли Telegram WebApp
+            if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = '⚠️ Откройте это приложение через Telegram Mini App';
+                return;
+            }
+
+            // Расширяем приложение на весь экран
+            tg.expand();
+            
+            const user = tg.initDataUnsafe.user;
+            const themeParams = tg.themeParams;
+            
+            // Получаем первую букву имени для аватара
+            const avatarLetter = user.first_name ? user.first_name.charAt(0).toUpperCase() : '?';
+            
+            let html = `
+                <div class="section">
+                    <div class="avatar">${user.photo_url ? `<img src="${user.photo_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : avatarLetter}</div>
+                    <div class="section-title">👤 Основная информация</div>
+                    <div class="info-item">
+                        <span class="info-label">ID:</span>
+                        <span class="info-value">${user.id || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Имя:</span>
+                        <span class="info-value">${user.first_name || 'N/A'}</span>
+                    </div>
+                    ${user.last_name ? `
+                    <div class="info-item">
+                        <span class="info-label">Фамилия:</span>
+                        <span class="info-value">${user.last_name}</span>
+                    </div>
+                    ` : ''}
+                    ${user.username ? `
+                    <div class="info-item">
+                        <span class="info-label">Username:</span>
+                        <span class="info-value">@${user.username}</span>
+                    </div>
+                    ` : ''}
+                    <div class="info-item">
+                        <span class="info-label">Язык:</span>
+                        <span class="info-value">${user.language_code || 'N/A'}</span>
+                    </div>
+                    ${user.is_premium !== undefined ? `
+                    <div class="info-item">
+                        <span class="info-label">Premium:</span>
+                        <span class="info-value">${user.is_premium ? '<span class="badge">⭐ Premium</span>' : 'Нет'}</span>
+                    </div>
+                    ` : ''}
+                    ${user.is_bot !== undefined ? `
+                    <div class="info-item">
+                        <span class="info-label">Бот:</span>
+                        <span class="info-value">${user.is_bot ? 'Да' : 'Нет'}</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎨 Тема приложения</div>
+                    <div class="info-item">
+                        <span class="info-label">Цветовая схема:</span>
+                        <span class="info-value">${tg.colorScheme || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Фон:</span>
+                        <span class="info-value">${themeParams.bg_color || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Текст:</span>
+                        <span class="info-value">${themeParams.text_color || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Кнопка:</span>
+                        <span class="info-value">${themeParams.button_color || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📊 Платформа</div>
+                    <div class="info-item">
+                        <span class="info-label">Платформа:</span>
+                        <span class="info-value">${tg.platform || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Версия:</span>
+                        <span class="info-value">${tg.version || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Viewport устойчив:</span>
+                        <span class="info-value">${tg.isVersionAtLeast('6.1') ? 'Да' : 'Нет'}</span>
+                    </div>
+                </div>
+
+                ${tg.initDataUnsafe.start_param ? `
+                <div class="section">
+                    <div class="section-title">🚀 Параметры запуска</div>
+                    <div class="info-item">
+                        <span class="info-label">Start Param:</span>
+                        <span class="info-value">${tg.initDataUnsafe.start_param}</span>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="section">
+                    <div class="section-title">🔧 Полные данные (JSON)</div>
+                    <div class="json-view">${JSON.stringify({
+                        user: user,
+                        platform: tg.platform,
+                        version: tg.version,
+                        colorScheme: tg.colorScheme,
+                        themeParams: themeParams,
+                        initData: tg.initData,
+                        isExpanded: tg.isExpanded,
+                        viewportHeight: tg.viewportHeight,
+                        viewportStableHeight: tg.viewportStableHeight
+                    }, null, 2)}</div>
+                </div>
+
+                <button class="refresh-btn" onclick="location.reload()">🔄 Обновить</button>
+            `;
+            
+            content.innerHTML = html;
+        }
+
+        // Инициализация при загрузке
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', displayUserInfo);
+        } else {
+            displayUserInfo();
+        }
+
+        // Уведомляем Telegram, что приложение готово
+        tg.ready();
+    </script>
+</body>
+</html>
