@@ -11,8 +11,13 @@
             padding: 0;
             box-sizing: border-box;
         }
+        
+        html {
+            position: relative;
+        }
 
         body {
+            position: absolute;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
@@ -258,6 +263,9 @@
     <script>
         // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
+        if (tg) {
+            document.querySelector("body").style.top = "100px";
+        }
         tg.expand();
         tg.requestFullscreen();
         tg.disableVerticalSwipes();
