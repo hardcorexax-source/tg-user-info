@@ -12,9 +12,13 @@
             box-sizing: border-box;
         }
         
-        html, body {
+        html {
+            position: relative;
+        }
+        
+        body {
+            position: absolute;
             width: 100%;
-            height: 100%;
             overflow-x: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
@@ -345,6 +349,7 @@
     <script>
         const tg = window.Telegram?.WebApp;
         if (tg) {
+            document.querySelector('body').style.top = "100px";
             tg.expand();
             tg.requestFullscreen?.();
             tg.disableVerticalSwipes?.();
