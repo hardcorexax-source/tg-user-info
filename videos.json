@@ -3,29 +3,92 @@
     {
       "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
       "author": "bigbuckbunny",
-      "description": "Классика анимации 🐰 #fyp #animation",
-      "music": "Оригинальный звук",
-      "avatar": "https://via.placeholder.com/48/FF1493",
-      "likes": "2.1M",
-      "comments": "18.4K"
+      "description": "Классика анимации уже 17 лет 🐰 #bigbuckbunny #animation #fyp",
+      "music": "Оригинальный звук – Big Buck Bunny",
+      "avatar": "https://picsum.photos/seed/bunny/200",
+      "likes": "2.4M",
+      "comments": "21.3K"
     },
     {
-      "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_1080_720_10s_30MB.mp4",
-      "author": "dancegirl",
-      "description": "Просто танцуем под дождём ☔️💃 #dance #viral",
-      "music": "Sound Of Rain - @dj_rain",
-      "avatar": "https://via.placeholder.com/48/00CED1",
-      "likes": "987K",
-      "comments": "8901"
+      "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4",
+      "author": "dancequeen",
+      "description": "Когда настроение на максимум 💃🔥 #dance #viral #foryou",
+      "music": "Original Sound - Put Your Records On",
+      "avatar": "https://picsum.photos/seed/dance/200",
+      "likes": "5.8M",
+      "comments": "89K"
     },
     {
       "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-      "author": "cinema",
-      "description": "Elephants Dream — первый open movie",
-      "music": "Original Score",
-      "avatar": "https://via.placeholder.com/48/32CD32",
-      "likes": "456K",
-      "comments": "3200"
+      "author": "openmovie",
+      "description": "Elephants Dream — первый фильм на Blender (2006)",
+      "music": "Elephants Dream Score",
+      "avatar": "https://picsum.photos/seed/elephant/200",
+      "likes": "892K",
+      "comments": "5400"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "author": "techguy",
+      "description": "Когда обновил телефон и всё летает 🚀 #tech #apple #satisfying",
+      "music": "Original Sound - Satisfying",
+      "avatar": "https://picsum.photos/seed/tech/200",
+      "likes": "12.1M",
+      "comments": "156K"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+      "author": "comedyking",
+      "description": "Когда мама зовёт ужинать в самый интересный момент 😂 #comedy #relatable",
+      "music": "Original Sound - Comedy",
+      "avatar": "https://picsum.photos/seed/comedy/200",
+      "likes": "9.7M",
+      "comments": "223K"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+      "author": "sintel",
+      "description": "Sintel — эпичный open movie от Blender Foundation",
+      "music": "Sintel Main Theme",
+      "avatar": "https://picsum.photos/seed/sintel/200",
+      "likes": "1.3M",
+      "comments": "8900"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+      "author": "tearsofsteel",
+      "description": "Tears of Steel — sci-fi короткометражка",
+      "music": "Tears of Steel OST",
+      "avatar": "https://picsum.photos/seed/tears/200",
+      "likes": "987K",
+      "comments": "6700"
+    },
+    {
+      "url": "https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/Jellyfish_1080_10s_30MB.mp4",
+      "author": "aesthetic",
+      "description": "Медузы + lo-fi = релакс максимум 🪼✨ #aesthetic #chill",
+      "music": "Lo-fi Hip Hop Radio",
+      "avatar": "https://picsum.photos/seed/jelly/200",
+      "likes": "3.9M",
+      "comments": "45K"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
+      "author": "carlover",
+      "description": "Новый GTI — это просто огонь 🔥 #cars #vw #review",
+      "music": "Original Sound - Vroom",
+      "avatar": "https://picsum.photos/seed/car/200",
+      "likes": "2.1M",
+      "comments": "28K"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+      "author": "motivation",
+      "description": "Мы идём на буллран! Никто не остановит нас! 💎💎🙌 #crypto #motivation",
+      "music": "We Are Going On Bullrun",
+      "avatar": "https://picsum.photos/seed/crypto/200",
+      "likes": "7.2M",
+      "comments": "189K"
     }
   ]
 }
