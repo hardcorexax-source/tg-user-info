@@ -1,736 +1,95 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mind Map Creator</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      overflow: hidden;
-      touch-action: none;
-    }
-
-    #app {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 12px 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 100;
-    }
-
-    .map-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: background 0.2s;
-    }
-
-    .map-title:hover {
-      background: rgba(0,0,0,0.05);
-    }
-
-    .map-title input {
-      border: none;
-      background: none;
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      outline: none;
-      width: 200px;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-secondary {
-      background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
-    }
-
-    .btn-secondary:hover {
-      background: #f0f4ff;
-    }
-
-    .canvas-container {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      background: white;
-    }
-
-    .canvas {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-
-    .node {
-      position: absolute;
-      padding: 12px 20px;
-      border-radius: 12px;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      cursor: move;
-      user-select: none;
-      transition: all 0.2s;
-      min-width: 120px;
-      max-width: 250px;
-      word-wrap: break-word;
-      border: 3px solid;
-      font-weight: 500;
-    }
-
-    .node:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-    }
-
-    .node.center {
-      font-size: 18px;
-      font-weight: 700;
-      min-width: 150px;
-    }
-
-    .node.selected {
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
-    }
-
-    .node-actions {
-      position: absolute;
-      top: -35px;
-      right: 0;
-      display: flex;
-      gap: 4px;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .node:hover .node-actions {
-      opacity: 1;
-    }
-
-    .node-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    .node-btn:hover {
-      transform: scale(1.1);
-    }
-
-    .node-btn.edit {
-      color: #667eea;
-    }
-
-    .node-btn.delete {
-      color: #ef4444;
-    }
-
-    .node-btn.add {
-      color: #10b981;
-    }
-
-    svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .connection {
-      stroke-width: 3;
-      fill: none;
-      opacity: 0.6;
-    }
-
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .modal-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #333;
-    }
-
-    .close-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: none;
-      background: #f3f4f6;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .close-btn:hover {
-      background: #e5e7eb;
-    }
-
-    .saved-map {
-      padding: 16px;
-      background: #f9fafb;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 2px solid transparent;
-    }
-
-    .saved-map:hover {
-      background: #f3f4f6;
-      border-color: #667eea;
-    }
-
-    .saved-map-name {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 4px;
-    }
-
-    .saved-map-info {
-      font-size: 12px;
-      color: #6b7280;
-    }
-
-    .edit-input {
-      width: 100%;
-      padding: 8px;
-      border: 2px solid #667eea;
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .zoom-controls {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      gap: 8px;
-      z-index: 10;
-    }
-
-    .zoom-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: none;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      cursor: pointer;
-      font-size: 20px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .zoom-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    .instructions {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(255,255,255,0.95);
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      max-width: 300px;
-      font-size: 13px;
-      color: #666;
-      z-index: 10;
-    }
-
-    .instructions strong {
-      color: #333;
-      display: block;
-      margin-bottom: 8px;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <div id="app">
-    <div class="header">
-      <div class="map-title" @click="startEditingName" v-if="!isEditingName">
-        {{ mapName }}
-      </div>
-      <input 
-        v-else
-        v-model="mapName"
-        @blur="isEditingName = false"
-        @keyup.enter="isEditingName = false"
-        class="map-title"
-        ref="nameInput"
-        autofocus
-      >
-      
-      <div class="toolbar">
-        <button class="btn btn-primary" @click="addNodeAtCenter">
-          <span style="font-size: 18px;">+</span> Узел
-        </button>
-        <button class="btn btn-secondary" @click="saveMap">
-          💾 Сохранить
-        </button>
-        <button class="btn btn-secondary" @click="showSaved = true">
-          📁 Загрузить
-        </button>
-        <button class="btn btn-secondary" @click="shareMap">
-          🔗 Поделиться
-        </button>
-      </div>
-    </div>
-
-    <div class="canvas-container" ref="container">
-      <div 
-        class="canvas" 
-        :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }"
-        @mousedown="startPan"
-        @mousemove="onMouseMove"
-        @mouseup="endDrag"
-        @mouseleave="endDrag"
-      >
-        <svg>
-          <path
-            v-for="conn in connections"
-            :key="`${conn.from}-${conn.to}`"
-            class="connection"
-            :d="getConnectionPath(conn)"
-            :stroke="conn.color"
-          />
-        </svg>
-
-        <div
-          v-for="node in nodes"
-          :key="node.id"
-          class="node"
-          :class="{ selected: selectedNode === node.id, center: node.isCenter }"
-          :style="{
-            left: node.x + 'px',
-            top: node.y + 'px',
-            borderColor: node.color,
-            color: node.color
-          }"
-          @mousedown.stop="startDrag($event, node)"
-        >
-          <div class="node-actions">
-            <button class="node-btn edit" @click.stop="startEditing(node)" title="Редактировать">
-              ✏️
-            </button>
-            <button class="node-btn add" @click.stop="addChildNode(node)" title="Добавить связь">
-              ➕
-            </button>
-            <button 
-              v-if="!node.isCenter"
-              class="node-btn delete" 
-              @click.stop="deleteNode(node.id)"
-              title="Удалить"
-            >
-              🗑️
-            </button>
-          </div>
-
-          <div v-if="editingNode !== node.id">{{ node.text }}</div>
-          <input
-            v-else
-            v-model="editText"
-            @blur="saveEdit"
-            @keyup.enter="saveEdit"
-            @click.stop
-            class="edit-input"
-            ref="editInput"
-          >
-        </div>
-      </div>
-
-      <div class="zoom-controls">
-        <button class="zoom-btn" @click="zoomIn">+</button>
-        <button class="zoom-btn" @click="zoomOut">−</button>
-      </div>
-
-      <div class="instructions">
-        <strong>💡 Как использовать:</strong>
-        • Перетаскивайте узлы<br>
-        • Нажмите ➕ для связи<br>
-        • Дважды кликните для редактирования<br>
-        • Сохраняйте и делитесь картами
-      </div>
-    </div>
-
-    <div v-if="showSaved" class="modal" @click.self="showSaved = false">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title">Сохранённые карты</div>
-          <button class="close-btn" @click="showSaved = false">✕</button>
-        </div>
-        
-        <div v-if="savedMaps.length === 0" style="text-align: center; color: #6b7280; padding: 20px;">
-          Нет сохранённых карт
-        </div>
-
-        <div
-          v-for="map in savedMaps"
-          :key="map.key"
-          class="saved-map"
-          @click="loadMap(map)"
-        >
-          <div class="saved-map-name">{{ map.name }}</div>
-          <div class="saved-map-info">
-            Узлов: {{ map.nodes.length }} • {{ formatDate(map.timestamp) }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <h1>Motion Tracking Example</h1>
+  <div id="acc">Accelerometer: —</div>
+  <div id="orient">Orientation: —</div>
+  <div id="gyro">Gyroscope: —</div>
+  <button id="start">Start tracking</button>
+  <button id="stop">Stop tracking</button>
 
   <script>
-    const { createApp } = Vue;
+    const wasm = window.Telegram.WebApp;
 
-    createApp({
-      data() {
-        return {
-          nodes: [],
-          connections: [],
-          selectedNode: null,
-          draggingNode: null,
-          editingNode: null,
-          editText: '',
-          offset: { x: 0, y: 0 },
-          pan: { x: 0, y: 0 },
-          scale: 1,
-          savedMaps: [],
-          showSaved: false,
-          mapName: 'Моя ментальная карта',
-          isEditingName: false,
-          isPanning: false,
-          panStart: { x: 0, y: 0 }
-        };
-      },
-      mounted() {
-        this.loadSavedMaps();
-        if (this.nodes.length === 0) {
-          this.addNode(400, 200, 'Главная идея 💡', true);
-        }
-      },
-      methods: {
-        addNode(x, y, text = 'Новая идея', isCenter = false, color = null) {
-          const newNode = {
-            id: Date.now() + Math.random(),
-            x,
-            y,
-            text,
-            isCenter,
-            color: color || (isCenter ? '#8b5cf6' : this.randomColor())
-          };
-          this.nodes.push(newNode);
-          return newNode;
-        },
+    // Обработчики событий
 
-        addNodeAtCenter() {
-          const containerRect = this.$refs.container.getBoundingClientRect();
-          const x = (containerRect.width / 2 - this.pan.x) / this.scale - 75;
-          const y = (containerRect.height / 2 - this.pan.y) / this.scale - 25;
-          this.addNode(x, y);
-        },
+    wasm.onEvent('accelerometerStarted', () => {
+      console.log('Accelerometer started');
+    });
 
-        addChildNode(parentNode) {
-          const angle = Math.random() * Math.PI * 2;
-          const distance = 150;
-          const x = parentNode.x + Math.cos(angle) * distance;
-          const y = parentNode.y + Math.sin(angle) * distance;
-          
-          const childNode = this.addNode(x, y, 'Новая идея', false, parentNode.color);
-          
-          this.connections.push({
-            from: parentNode.id,
-            to: childNode.id,
-            color: parentNode.color
-          });
-        },
+    wasm.onEvent('accelerometerChanged', () => {
+      const acc = wasm.Accelerometer;
+      document.getElementById('acc').textContent = 
+        `x: ${acc.x.toFixed(2)}, y: ${acc.y.toFixed(2)}, z: ${acc.z.toFixed(2)}`;
+    });
 
-        deleteNode(id) {
-          this.nodes = this.nodes.filter(n => n.id !== id);
-          this.connections = this.connections.filter(c => c.from !== id && c.to !== id);
-          this.selectedNode = null;
-        },
+    wasm.onEvent('accelerometerStopped', () => {
+      console.log('Accelerometer stopped');
+    });
 
-        startDrag(e, node) {
-          if (this.editingNode) return;
-          this.draggingNode = node.id;
-          this.selectedNode = node.id;
-          
-          const rect = this.$refs.container.getBoundingClientRect();
-          this.offset = {
-            x: (e.clientX - rect.left) / this.scale - node.x,
-            y: (e.clientY - rect.top) / this.scale - node.y
-          };
-        },
+    wasm.onEvent('accelerometerFailed', (e) => {
+      console.error('Accelerometer failed', e.error);
+    });
 
-        startPan(e) {
-          if (e.target === this.$refs.container || e.target.classList.contains('canvas')) {
-            this.isPanning = true;
-            this.panStart = { x: e.clientX - this.pan.x, y: e.clientY - this.pan.y };
-          }
-        },
+    // Ориентация устройства
 
-        onMouseMove(e) {
-          if (this.draggingNode) {
-            const rect = this.$refs.container.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / this.scale - this.offset.x;
-            const y = (e.clientY - rect.top) / this.scale - this.offset.y;
-            
-            const node = this.nodes.find(n => n.id === this.draggingNode);
-            if (node) {
-              node.x = x;
-              node.y = y;
-            }
-          } else if (this.isPanning) {
-            this.pan.x = e.clientX - this.panStart.x;
-            this.pan.y = e.clientY - this.panStart.y;
-          }
-        },
+    wasm.onEvent('deviceOrientationStarted', () => {
+      console.log('DeviceOrientation started');
+    });
 
-        endDrag() {
-          this.draggingNode = null;
-          this.isPanning = false;
-        },
+    wasm.onEvent('deviceOrientationChanged', () => {
+      const orientation = wasm.DeviceOrientation;
+      document.getElementById('orient').textContent = 
+        `alpha: ${orientation.alpha.toFixed(2)}, beta: ${orientation.beta.toFixed(2)}, gamma: ${orientation.gamma.toFixed(2)}, absolute: ${orientation.absolute}`;
+    });
 
-        startEditing(node) {
-          this.editingNode = node.id;
-          this.editText = node.text;
-          this.$nextTick(() => {
-            if (this.$refs.editInput && this.$refs.editInput[0]) {
-              this.$refs.editInput[0].focus();
-            }
-          });
-        },
+    wasm.onEvent('deviceOrientationStopped', () => {
+      console.log('DeviceOrientation stopped');
+    });
 
-        saveEdit() {
-          const node = this.nodes.find(n => n.id === this.editingNode);
-          if (node) {
-            node.text = this.editText || 'Новая идея';
-          }
-          this.editingNode = null;
-        },
+    wasm.onEvent('deviceOrientationFailed', (e) => {
+      console.error('DeviceOrientation failed', e.error);
+    });
 
-        startEditingName() {
-          this.isEditingName = true;
-          this.$nextTick(() => {
-            if (this.$refs.nameInput) {
-              this.$refs.nameInput.focus();
-            }
-          });
-        },
+    // Гироскоп
 
-        getConnectionPath(conn) {
-          const fromNode = this.nodes.find(n => n.id === conn.from);
-          const toNode = this.nodes.find(n => n.id === conn.to);
-          
-          if (!fromNode || !toNode) return '';
+    wasm.onEvent('gyroscopeStarted', () => {
+      console.log('Gyroscope started');
+    });
 
-          const x1 = fromNode.x + 75;
-          const y1 = fromNode.y + 25;
-          const x2 = toNode.x + 75;
-          const y2 = toNode.y + 25;
+    wasm.onEvent('gyroscopeChanged', () => {
+      const gyro = wasm.Gyroscope;
+      document.getElementById('gyro').textContent =
+        `x: ${gyro.x.toFixed(2)}, y: ${gyro.y.toFixed(2)}, z: ${gyro.z.toFixed(2)}`;
+    });
 
-          const dx = x2 - x1;
-          const dy = y2 - y1;
-          const cx = x1 + dx * 0.5;
-          const cy = y1 + dy * 0.5;
+    wasm.onEvent('gyroscopeStopped', () => {
+      console.log('Gyroscope stopped');
+    });
 
-          return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
-        },
+    wasm.onEvent('gyroscopeFailed', (e) => {
+      console.error('Gyroscope failed', e.error);
+    });
 
-        async saveMap() {
-          const mapData = {
-            name: this.mapName,
-            nodes: this.nodes,
-            connections: this.connections,
-            timestamp: Date.now()
-          };
+    // Кнопки
 
-          const key = `mindmap:${Date.now()}`;
-          
-          try {
-            await window.storage.set(key, JSON.stringify(mapData));
-            alert('✅ Карта сохранена!');
-            this.loadSavedMaps();
-          } catch (error) {
-            alert('❌ Ошибка сохранения: ' + error.message);
-          }
-        },
+    document.getElementById('start').addEventListener('click', () => {
+      // Запуск со скоростью 100 мc
+      wasm.Accelerometer.start({ refresh_rate: 100 });
+      wasm.DeviceOrientation.start({ refresh_rate: 100, need_absolute: false });
+      wasm.Gyroscope.start({ refresh_rate: 100 });
+    });
 
-        async loadSavedMaps() {
-          try {
-            const result = await window.storage.list('mindmap:');
-            if (result && result.keys) {
-              const maps = [];
-              for (const key of result.keys) {
-                try {
-                  const data = await window.storage.get(key);
-                  if (data) {
-                    const parsed = JSON.parse(data.value);
-                    maps.push({ key, ...parsed });
-                  }
-                } catch (e) {
-                  console.log('Error loading map:', e);
-                }
-              }
-              this.savedMaps = maps.sort((a, b) => b.timestamp - a.timestamp);
-            }
-          } catch (error) {
-            console.log('No saved maps yet');
-          }
-        },
-
-        loadMap(map) {
-          this.mapName = map.name;
-          this.nodes = map.nodes;
-          this.connections = map.connections;
-          this.showSaved = false;
-        },
-
-        async shareMap() {
-          const mapData = {
-            name: this.mapName,
-            nodes: this.nodes,
-            connections: this.connections,
-            timestamp: Date.now()
-          };
-
-          const shareKey = `shared:mindmap:${Date.now()}`;
-          
-          try {
-            await window.storage.set(shareKey, JSON.stringify(mapData), true);
-            const shareUrl = `${window.location.href}?map=${shareKey}`;
-            
-            if (navigator.share) {
-              await navigator.share({
-                title: this.mapName,
-                text: 'Посмотри мою ментальную карту!',
-                url: shareUrl
-              });
-            } else {
-              navigator.clipboard.writeText(shareUrl);
-              alert('🔗 Ссылка скопирована в буфер обмена!');
-            }
-          } catch (error) {
-            alert('❌ Ошибка: ' + error.message);
-          }
-        },
-
-        zoomIn() {
-          this.scale = Math.min(this.scale + 0.1, 2);
-        },
-
-        zoomOut() {
-          this.scale = Math.max(this.scale - 0.1, 0.5);
-        },
-
-        randomColor() {
-          const colors = [
-            '#ef4444', '#f59e0b', '#10b981', '#3b82f6', 
-            '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
-          ];
-          return colors[Math.floor(Math.random() * colors.length)];
-        },
-
-        formatDate(timestamp) {
-          const date = new Date(timestamp);
-          return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        }
-      }
-    }).mount('#app');
+    document.getElementById('stop').addEventListener('click', () => {
+      wasm.Accelerometer.stop();
+      wasm.DeviceOrientation.stop();
+      wasm.Gyroscope.stop();
+    });
   </script>
 </body>
 </html>
+
