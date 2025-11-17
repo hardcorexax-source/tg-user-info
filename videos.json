@@ -1,0 +1,31 @@
+{
+  "videos": [
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      "author": "bigbuckbunny",
+      "description": "Классика анимации 🐰 #fyp #animation",
+      "music": "Оригинальный звук",
+      "avatar": "https://via.placeholder.com/48/FF1493",
+      "likes": "2.1M",
+      "comments": "18.4K"
+    },
+    {
+      "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_1080_720_10s_30MB.mp4",
+      "author": "dancegirl",
+      "description": "Просто танцуем под дождём ☔️💃 #dance #viral",
+      "music": "Sound Of Rain - @dj_rain",
+      "avatar": "https://via.placeholder.com/48/00CED1",
+      "likes": "987K",
+      "comments": "8901"
+    },
+    {
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      "author": "cinema",
+      "description": "Elephants Dream — первый open movie",
+      "music": "Original Score",
+      "avatar": "https://via.placeholder.com/48/32CD32",
+      "likes": "456K",
+      "comments": "3200"
+    }
+  ]
+}
