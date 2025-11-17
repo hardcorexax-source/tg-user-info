@@ -109,6 +109,8 @@
   <script>
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
+    Telegram.WebApp.requestFullscreen();
+    Telegram.WebApp.disableVerticalSwipes();
 
     const { createApp, ref, onMounted, nextTick } = Vue;
 
