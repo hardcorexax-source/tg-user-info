@@ -40,7 +40,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s ease-out;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             transform-style: preserve-3d;
             position: relative;
             overflow: hidden;
@@ -54,7 +54,17 @@
             width: 200%;
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            transition: transform 0.1s ease-out;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.6;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .content {
@@ -143,7 +153,19 @@
             border-radius: 50%;
             opacity: 0.6;
         }
-    </style>
+
+        .button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: none;
+        }
 </head>
 <body>
     <div class="container">
@@ -182,6 +204,9 @@
 
         let isTracking = false;
         let accelerometerData = { x: 0, y: 0, z: 0 };
+        let baselineData = null; // Базовые значения при входе
+        let smoothedData = { x: 0, y: 0, z: 0 }; // Сглаженные значения
+        const smoothingFactor = 0.15; // Коэффициент сглаживания (меньше = плавнее)
 
         // Создаем частицы для дополнительного эффекта
         function createParticles() {
@@ -227,11 +252,33 @@
                 case 'accelerometer_started':
                     status.textContent = '✅ Акселерометр активирован';
                     isTracking = true;
-                    startBtn.textContent = 'Остановить';
+                    startBtn.style.display = 'none';
                     break;
 
                 case 'accelerometer_changed':
-                    accelerometerData = eventData;
+                    // Устанавливаем базовую линию при первом считывании
+                    if (baselineData === null) {
+                        baselineData = { 
+                            x: eventData.x, 
+                            y: eventData.y, 
+                            z: eventData.z 
+                        };
+                        smoothedData = { x: 0, y: 0, z: 0 };
+                    }
+                    
+                    // Вычисляем относительное изменение от базовой линии
+                    const relativeData = {
+                        x: eventData.x - baselineData.x,
+                        y: eventData.y - baselineData.y,
+                        z: eventData.z - baselineData.z
+                    };
+                    
+                    // Применяем экспоненциальное сглаживание
+                    smoothedData.x += (relativeData.x - smoothedData.x) * smoothingFactor;
+                    smoothedData.y += (relativeData.y - smoothedData.y) * smoothingFactor;
+                    smoothedData.z += (relativeData.z - smoothedData.z) * smoothingFactor;
+                    
+                    accelerometerData = smoothedData;
                     updateDisplay();
                     apply3DEffect();
                     break;
@@ -239,12 +286,14 @@
                 case 'accelerometer_stopped':
                     status.textContent = '⏸️ Акселерометр остановлен';
                     isTracking = false;
+                    startBtn.style.display = 'block';
                     startBtn.textContent = 'Запустить';
                     break;
 
                 case 'accelerometer_failed':
                     status.textContent = `❌ Ошибка: ${eventData.error}`;
                     isTracking = false;
+                    startBtn.style.display = 'block';
                     startBtn.textContent = 'Запустить';
                     break;
             }
@@ -282,22 +331,26 @@
         }
 
         // Запуск/остановка отслеживания акселерометра
+        function startAccelerometer() {
+            const message = JSON.stringify({
+                method: 'web_app_start_accelerometer',
+                params: { refresh_rate: 60 }
+            });
+            
+            if (window.TelegramWebviewProxy) {
+                window.TelegramWebviewProxy.postEvent('web_app_start_accelerometer', 
+                    JSON.stringify({ refresh_rate: 60 }));
+            } else if (window.external && window.external.notify) {
+                window.external.notify(message);
+            } else {
+                status.textContent = '⚠️ Доступно только в Telegram';
+                startBtn.style.display = 'block';
+            }
+        }
+
         startBtn.addEventListener('click', () => {
             if (!isTracking) {
-                // Отправляем команду для запуска акселерометра
-                const message = JSON.stringify({
-                    method: 'web_app_start_accelerometer',
-                    params: { refresh_rate: 60 }
-                });
-                
-                if (window.TelegramWebviewProxy) {
-                    window.TelegramWebviewProxy.postEvent('web_app_start_accelerometer', 
-                        JSON.stringify({ refresh_rate: 60 }));
-                } else if (window.external && window.external.notify) {
-                    window.external.notify(message);
-                } else {
-                    status.textContent = '⚠️ Доступно только в Telegram';
-                }
+                startAccelerometer();
             } else {
                 // Остановка акселерометра
                 const message = JSON.stringify({
@@ -312,29 +365,73 @@
             }
         });
 
+        // Автоматический запуск акселерометра при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                startAccelerometer();
+            }, 500);
+        });
+
         // Демо-режим для тестирования вне Telegram
         let demoInterval;
         if (!window.TelegramWebviewProxy && !window.external) {
             status.textContent = '🎮 Демо-режим (не в Telegram)';
+            startBtn.style.display = 'block';
+            
+            // Автозапуск демо-режима
+            setTimeout(() => {
+                isTracking = true;
+                startBtn.style.display = 'none';
+                status.textContent = '✅ Демо-режим активен';
+                
+                let angle = 0;
+                baselineData = { x: 0, y: 0, z: 0 };
+                
+                demoInterval = setInterval(() => {
+                    angle += 0.02;
+                    const targetData = {
+                        x: Math.sin(angle) * 2,
+                        y: Math.cos(angle) * 2,
+                        z: Math.sin(angle * 2) * 0.5
+                    };
+                    
+                    // Применяем сглаживание в демо-режиме
+                    smoothedData.x += (targetData.x - smoothedData.x) * smoothingFactor;
+                    smoothedData.y += (targetData.y - smoothedData.y) * smoothingFactor;
+                    smoothedData.z += (targetData.z - smoothedData.z) * smoothingFactor;
+                    
+                    accelerometerData = smoothedData;
+                    updateDisplay();
+                    apply3DEffect();
+                }, 16);
+            }, 500);
+            
             startBtn.addEventListener('click', () => {
                 if (!isTracking) {
                     isTracking = true;
-                    startBtn.textContent = 'Остановить';
+                    startBtn.style.display = 'none';
                     status.textContent = '✅ Демо-режим активен';
                     
                     let angle = 0;
                     demoInterval = setInterval(() => {
-                        angle += 0.05;
-                        accelerometerData = {
+                        angle += 0.02;
+                        const targetData = {
                             x: Math.sin(angle) * 2,
                             y: Math.cos(angle) * 2,
                             z: Math.sin(angle * 2) * 0.5
                         };
+                        
+                        smoothedData.x += (targetData.x - smoothedData.x) * smoothingFactor;
+                        smoothedData.y += (targetData.y - smoothedData.y) * smoothingFactor;
+                        smoothedData.z += (targetData.z - smoothedData.z) * smoothingFactor;
+                        
+                        accelerometerData = smoothedData;
                         updateDisplay();
                         apply3DEffect();
                     }, 16);
                 } else {
                     isTracking = false;
+                    startBtn.style.display = 'block';
                     startBtn.textContent = 'Запустить';
                     status.textContent = '⏸️ Демо остановлен';
                     clearInterval(demoInterval);
@@ -344,5 +441,3 @@
     </script>
 </body>
 </html>
-
-
