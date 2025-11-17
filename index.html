@@ -1,296 +1,238 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>3D эффект по акселерометру</title>
-<style>
-  :root{
-    --size: 360px;
-    --bg: linear-gradient(180deg,#0f172a,#071029 80%);
-  }
-  html,body{
-    height:100%;
-    margin:0;
-    font-family: Inter, Roboto, "Helvetica Neue", Arial;
-    background: var(--bg);
-    color:#e6eef8;
-    -webkit-font-smoothing:antialiased;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  /* Сцена с перспективой */
-  .scene{
-    width:var(--size);
-    height:calc(var(--size) * 1.2);
-    perspective:1000px; /* регулирует "глубину" 3D */
-    position:relative;
-  }
-
-  /* Объект, который повернем по осям */
-  .card{
-    width:100%;
-    height:100%;
-    border-radius:18px;
-    background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-    box-shadow: 0 20px 40px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
-    transform-style: preserve-3d;
-    transition: transform 120ms linear;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    position:relative;
-  }
-
-  /* Слой заднего плана — параллакс (меньше движения) */
-  .layer.bg{
-    position:absolute;
-    inset:0;
-    transform: translateZ(-60px) scale(1.18);
-    background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.02), transparent 10%),
-                      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02), transparent 10%);
-    z-index:1;
-    pointer-events:none;
-  }
-
-  /* Основное содержимое — двигается сильнее */
-  .content{
-    position:relative;
-    z-index:3;
-    text-align:center;
-    transform: translateZ(30px) scale(0.95);
-  }
-
-  h1{ margin:0 0 8px 0; font-size:20px; letter-spacing:0.4px; }
-  p{ margin:0; opacity:.85; font-size:13px; }
-
-  /* Тень, которая меняет смещение и размытие */
-  .shadow{
-    position:absolute;
-    left:50%;
-    top:100%;
-    width:80%;
-    height:28%;
-    transform:translate(-50%,-40%) rotateX(90deg);
-    filter: blur(18px);
-    background: radial-gradient(closest-side, rgba(2,6,23,0.65), rgba(2,6,23,0.08) 60%, transparent 100%);
-    z-index:0;
-    transition: all 120ms linear;
-    pointer-events:none;
-  }
-
-  /* указатель/инфо */
-  .controls{
-    margin-top:16px;
-    text-align:center;
-    font-size:13px;
-    opacity:.9;
-  }
-  .btn{
-    display:inline-block;
-    margin-top:8px;
-    padding:8px 12px;
-    border-radius:8px;
-    background:rgba(255,255,255,0.06);
-    color:inherit;
-    text-decoration:none;
-    cursor:pointer;
-    border:1px solid rgba(255,255,255,0.04);
-    font-size:13px;
-  }
-
-  /* маленькие устройства — уменьшить размер */
-  @media (max-width:420px){
-    :root{ --size:300px; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TikTok Clone</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      touch-action: pan-y; /* улучшает скролл на мобильных */
+    }
+    #app {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .video-container {
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+      scroll-snap-align: start;
+      overflow: hidden;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+    .overlay {
+      position: absolute;
+      bottom: 80px;
+      left: 15px;
+      color: white;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .author {
+      font-weight: 700;
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+    .description {
+      font-size: 14px;
+      line-height: 1.3;
+      max-width: 85%;
+    }
+    .music {
+      position: absolute;
+      bottom: 30px;
+      left: 15px;
+      color: white;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sidebar {
+      position: absolute;
+      right: 10px;
+      bottom: 90px;
+      z-index: 20;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .sidebar-item {
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .sidebar-item img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+    .sidebar-item .icon {
+      font-size: 32px;
+      margin-bottom: 4px;
+    }
+    .sidebar-item .count {
+      font-size: 12px;
+    }
+    .like-animation {
+      position: absolute;
+      font-size: 80px;
+      color: white;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 30;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    ::-webkit-scrollbar { display: none; }
+    #app { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
 <body>
-  <div style="display:flex;flex-direction:column;align-items:center;">
-    <div class="scene" id="scene">
-      <div class="card" id="card">
-        <div class="layer bg" id="bg"></div>
-        <div class="content" id="content">
-          <h1>3D по акселерометру</h1>
-          <p>Наклоняй устройство — смотри эффект параллакса и динамической тени</p>
-        </div>
-        <div class="shadow" id="shadow"></div>
-      </div>
-    </div>
+  <div id="app"></div>
 
-    <div class="controls">
-      <div id="status">Статус: <span id="statTxt">ожидание датчика</span></div>
-      <button class="btn" id="permBtn" style="display:none">Разрешить доступ к датчикам</button>
-      <div style="margin-top:8px;font-size:12px;opacity:.8">Поддержка: мобильные браузеры + fallback мышь</div>
-    </div>
-  </div>
+  <script>
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
 
-<script>
-/*
-  Алгоритм:
-   - Слушаем deviceorientation/deviceMotion (если доступны)
-   - На iOS нужен вызов requestPermission() в ответ на жест пользователя
-   - Если датчиков нет — используем mousemove для симуляции
-   - Применяем сглаживание (low-pass filter), ограничение углов, затем mapping -> CSS transforms.
-*/
+    const app = document.getElementById('app');
+    let currentVideo = null;
 
-const card = document.getElementById('card');
-const shadow = document.getElementById('shadow');
-const bgLayer = document.getElementById('bg');
-const statTxt = document.getElementById('statTxt');
-const permBtn = document.getElementById('permBtn');
-
-let enabledSource = null; // "device", "mouse"
-let last = { x:0, y:0, z:0 };
-let smoothed = { x:0, y:0, z:0 };
-const smoothing = 0.12; // 0..1  — чем меньше, тем сильнее сглаживание
-
-// Настройки амплитуды эффектов
-const MAX_TILT = 18; // градусы — максимальный вращение карты
-const BG_MULT = 0.45; // фон двигается слабее
-const SHADOW_SHIFT = 40; // px смещение тени при наклоне
-const SHADOW_BLUR_MIN = 6;
-const SHADOW_BLUR_MAX = 36;
-
-// Преобразование углов в CSS
-function applyTransform(xTiltDeg, yTiltDeg){
-  // Ограничим
-  const x = Math.max(-MAX_TILT, Math.min(MAX_TILT, xTiltDeg));
-  const y = Math.max(-MAX_TILT, Math.min(MAX_TILT, yTiltDeg));
-  // Поворачиваем карту: по X — наклон вперёд/назад, по Y — влево/вправо (знаки подобраны экспериментально)
-  const rotateX = x;
-  const rotateY = -y;
-  card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
-
-  // Параллакс фон — небольшой сдвиг
-  const bgX = -y * BG_MULT;
-  const bgY = -x * BG_MULT;
-  bgLayer.style.transform = `translate3d(${bgX}px, ${bgY}px, -60px) scale(1.18)`;
-
-  // Тень: сдвиг и размытие в зависимости от наклона
-  const shadowX = (y / MAX_TILT) * SHADOW_SHIFT;
-  const shadowY = (-x / MAX_TILT) * (SHADOW_SHIFT * 0.6);
-  const blur = Math.max(SHADOW_BLUR_MIN, Math.min(SHADOW_BLUR_MAX, Math.abs(x) + Math.abs(y) + 8));
-  shadow.style.transform = `translate(calc(-50% + ${shadowX}px), calc(-40% + ${shadowY}px)) rotateX(90deg)`;
-  shadow.style.filter = `blur(${blur}px)`;
-  // Меняем интенсивность тени (альфа) чуть-чуть
-  const alpha = 0.35 + (Math.min(1, (Math.abs(x)+Math.abs(y)) / (MAX_TILT*1.6)) * 0.6);
-  shadow.style.background = `radial-gradient(closest-side, rgba(2,6,23,${0.6*alpha}), rgba(2,6,23,${0.07*alpha}) 60%, transparent 100%)`;
-}
-
-// Сглаживание: экспоненциальное (low-pass)
-function smoothTo(target, cur) {
-  return cur + (target - cur) * smoothing;
-}
-
-// Обновление UI/параметров через requestAnimationFrame
-let rafId = null;
-function loop(){
-  // сглаживаем
-  smoothed.x = smoothTo(last.x, smoothed.x);
-  smoothed.y = smoothTo(last.y, smoothed.y);
-  smoothed.z = smoothTo(last.z, smoothed.z);
-  applyTransform(smoothed.x, smoothed.y);
-  rafId = requestAnimationFrame(loop);
-}
-
-// Обработка событий гироскопа/акселерометра
-function handleDeviceOrientation(e){
-  enabledSource = 'device';
-  statTxt.textContent = 'используется датчик (deviceorientation)';
-  // e.beta (наклон вперед/назад) : -180..180, 0 — ровно
-  // e.gamma (наклон влево/вправо): -90..90
-  // Нужна корректная привязка — подберём так, чтобы движение было интуитивным
-  const beta = e.beta || 0; // X axis tilt
-  const gamma = e.gamma || 0; // Y axis tilt
-
-  // В некоторых устройствах оси инвертированы — можно добавить настройку, но для простоты берём beta,gamma
-  // Нормализуем в диапазон градусов и уменьшим чувствительность
-  last.x = (beta - 0) * 0.6; // вперед/назад
-  last.y = (gamma - 0) * 0.8; // влево/вправо
-}
-
-// Для старых/других браузеров можно слушать devicemotion и интегрировать accel — пропущу для краткости
-
-// Fallback — мышь (для десктопа)
-function handleMouseMove(e){
-  if (enabledSource === 'device') return; // не мешать, если устройство уже даёт данные
-  enabledSource = 'mouse';
-  statTxt.textContent = 'используется мышь (fallback)';
-  const rect = card.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const cy = rect.top + rect.height/2;
-  const dx = e.clientX - cx;
-  const dy = e.clientY - cy;
-  // map to degrees
-  const percentX = dy / (rect.height/2); // вверх/вниз
-  const percentY = dx / (rect.width/2);  // влево/вправо
-  last.x = percentX * MAX_TILT * 0.9 * -1; // инвертировать для естественного движения
-  last.y = percentY * MAX_TILT * 0.9;
-}
-
-// Инициализация датчика: учитываем iOS (нужен запрос разрешения)
-function initSensors(){
-  // Платформенная проверка: iOS требует специального запроса
-  const isiOS = typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function';
-  if (isiOS){
-    permBtn.style.display = 'inline-block';
-    permBtn.addEventListener('click', async () => {
-      try {
-        const resp = await DeviceMotionEvent.requestPermission();
-        if (resp === 'granted'){
-          window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-          statTxt.textContent = 'датчики разрешены (iOS)';
-          permBtn.style.display = 'none';
+    // IntersectionObserver — автоплей только видимого видео
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          video.play();
+          currentVideo = video;
         } else {
-          statTxt.textContent = 'доступ к датчику отклонён';
+          video.pause();
         }
-      } catch (err){
-        console.warn(err);
-        statTxt.textContent = 'ошибка при запросе разрешения';
-      }
-    });
-    statTxt.textContent = 'на iOS нужно нажать "Разрешить"';
-    return;
-  }
+      });
+    }, { threshold: [0, 0.6, 1] });
 
-  // Не-iOS: добавляем слушатель, если поддерживается
-  if ('ondeviceorientation' in window){
-    window.addEventListener('deviceorientation', handleDeviceOrientation, true);
-    statTxt.textContent = 'ожидание данных от deviceorientation';
-  } else if ('DeviceMotionEvent' in window){
-    // можно слушать devicemotion (ускорения) — для простоты используем deviceorientation if available
-    window.addEventListener('devicemotion', (ev) => {
-      // простой mapping: gamma/ beta не всегда есть — пропускаем
-    }, true);
-    statTxt.textContent = 'поддерживается devicemotion, но deviceorientation недоступен';
-  } else {
-    statTxt.textContent = 'датчики недоступны — используем мышь';
-  }
-}
+    // Загружаем videos.json
+    fetch('videos.json')
+      .then(res => res.json())
+      .then(data => {
+        data.videos.forEach(item => {
+          const container = document.createElement('div');
+          container.className = 'video-container';
 
-// стартовое поведение
-function start(){
-  initSensors();
-  window.addEventListener('mousemove', handleMouseMove, {passive:true});
-  // Запускаем loop
-  if (!rafId) loop();
-}
+          // Видео
+          const video = document.createElement('video');
+          video.src = item.url;
+          video.muted = true;
+          video.loop = true;
+          video.playsInline = true;
+          video.preload = "metadata";
+          container.appendChild(video);
 
-// стоп (если нужно)
-function stop(){
-  window.removeEventListener('deviceorientation', handleDeviceOrientation);
-  window.removeEventListener('mousemove', handleMouseMove);
-  if (rafId) cancelAnimationFrame(rafId);
-  rafId = null;
-}
+          // Оверлей (автор + описание)
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay';
+          overlay.innerHTML = `
+            <div class="author">@${item.author || 'username'}</div>
+            <div class="description">${item.description || ''}</div>
+          `;
+          container.appendChild(overlay);
 
-start();
+          // Музыка внизу
+          const music = document.createElement('div');
+          music.className = 'music';
+          music.innerHTML = `♪ ${item.music || 'Оригинальный звук – ' + (item.author || 'username')}`;
+          container.appendChild(music);
 
-// Доп: если хотите — можно добавить кнопку "reset" или настройки чувствительности
-</script>
+          // Боковая панель
+          const sidebar = document.createElement('div');
+          sidebar.className = 'sidebar';
+          sidebar.innerHTML = `
+            <div class="sidebar-item profile">
+              <img src="${item.avatar || 'https://via.placeholder.com/48/333'}" alt="avatar">
+              <div style="font-size:24px;margin-top:4px;">➕</div>
+            </div>
+            <div class="sidebar-item like-btn">
+              <div class="icon">❤️</div>
+              <div class="count">${item.likes || '0'}</div>
+            </div>
+            <div class="sidebar-item">
+              <div class="icon">💬</div>
+              <div class="count">${item.comments || '0'}</div>
+            </div>
+            <div class="sidebar-item">
+              <div class="icon">🔗</div>
+              <div class="count">Поделиться</div>
+            </div>
+          `;
+          container.appendChild(sidebar);
+
+          // Анимация лайка при двойном тапе
+          const likeAnim = document.createElement('div');
+          likeAnim.className = 'like-animation';
+          likeAnim.innerHTML = '❤️';
+          container.appendChild(likeAnim);
+
+          // Обработка клика и двойного тапа
+          let tapCount = 0;
+          container.addEventListener('click', (e) => {
+            if (e.target.closest('.sidebar')) return; // не паузим при клике по иконкам
+
+            tapCount++;
+            if (tapCount === 1) {
+              setTimeout(() => {
+                if (tapCount === 1) {
+                  // одиночный тап — пауза/плей
+                  video.paused ? video.play() : video.pause();
+                }
+                tapCount = 0;
+              }, 300);
+            } else if (tapCount === 2) {
+              // двойной тап — лайк
+              tapCount = 0;
+              likeAnim.style.opacity = '1';
+              likeAnim.style.transform = 'translate(-50%, -50%) scale(1.3)';
+              setTimeout(() => {
+                likeAnim.style.opacity = '0';
+                likeAnim.style.transform = 'translate(-50%, -50%) scale(0)';
+              }, 600);
+
+              // увеличиваем счётчик лайков (только визуально)
+              const countEl = container.querySelector('.like-btn .count');
+              let count = parseInt(countEl.textContent.replace(/[^0-9]/g, '')) || 0;
+              count++;
+              countEl.textContent = count > 999 ? (count/1000).toFixed(1) + 'K' : count;
+            }
+          });
+
+          app.appendChild(container);
+          observer.observe(container);
+        });
+
+        // После загрузки всех видео — начинаем с первого
+        if (data.videos.length > 0) {
+          setTimeout(() => app.scrollTop = 0, 100);
+        }
+      })
+      .catch(err => {
+        app.innerHTML = '<div style="color:white;text-align:center;padding-top:50vh;">Ошибка загрузки videos.json</div>';
+        console.error(err);
+      });
+  </script>
 </body>
 </html>
