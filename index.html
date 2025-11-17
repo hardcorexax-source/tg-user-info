@@ -2,540 +2,450 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Notes</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        html {
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            overflow-x: hidden;
+        }
+
+        #app {
+            max-width: 768px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 12px 16px;
+            border-bottom: 0.5px solid #E5E5EA;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .add-button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+
+        .add-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(0, 122, 255, 0.3);
+        }
+
+        .search-bar {
+            padding: 8px 16px;
+            background: #ffffff;
+            border-bottom: 0.5px solid #E5E5EA;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            background: #F2F2F7;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            outline: none;
+        }
+
+        .notes-container {
+            flex: 1;
+            padding: 8px 16px;
+            overflow-y: auto;
+        }
+
+        .note-card {
+            background: #F2F2F7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
             position: relative;
         }
-        
-        body {
+
+        .note-card:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .note-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #000000;
+            line-height: 1.3;
+        }
+
+        .note-preview {
+            font-size: 15px;
+            color: #8E8E93;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-date {
+            font-size: 13px;
+            color: #8E8E93;
+            margin-top: 8px;
+        }
+
+        .delete-button {
             position: absolute;
-            width: 100%;
-            overflow-x: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            top: 16px;
+            right: 16px;
+            background: #FF3B30;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
-        
-        /* Фоновое изображение с размытием */
-        .background {
-            position: fixed;
-            top: -20px;
-            left: -20px;
-            width: calc(100% + 40px);
-            height: calc(100% + 40px);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-size: cover;
-            background-position: center;
-            filter: blur(40px);
-            opacity: 0.6;
-            z-index: 0;
-            transition: background-image 0.5s ease;
+
+        .note-card:hover .delete-button {
+            opacity: 1;
         }
-        
-        /* Оверлей для затемнения */
-        .overlay {
+
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-        }
-        
-        body {
-            position: relative;
-            color: white;
-            padding: 20px;
-            min-height: 100vh;
-            z-index: 2;
-        }
-        
-        .player-container {
-            position: relative;
-            z-index: 2;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        
-        .current-track {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 32px 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .track-artwork {
-            width: 280px;
-            height: 280px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            margin: 0 auto 24px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 96px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease;
+            align-items: flex-end;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
         }
-        
-        .track-artwork:active {
-            transform: scale(0.98);
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        
-        .track-info h2 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: white;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
-        
-        .track-info p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 16px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .progress-container {
-            margin: 28px 0;
-        }
-        
-        .progress-bar {
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 20px 20px 0 0;
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            max-width: 768px;
+            margin: 0 auto;
+            padding: 20px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s;
         }
-        
-        .progress-fill {
-            height: 100%;
-            background: white;
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.1s;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-        
-        .time-display {
+
+        .modal-header {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 10px;
-            font-weight: 500;
-        }
-        
-        .controls {
-            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 32px;
-            margin-top: 32px;
+            margin-bottom: 16px;
         }
-        
-        .control-btn {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: white;
-            padding: 8px;
-            transition: all 0.2s;
-            opacity: 0.9;
-        }
-        
-        .control-btn:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-        
-        .control-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .play-btn {
-            font-size: 32px;
-            background: white;
-            color: #764ba2;
-            border-radius: 50%;
-            width: 72px;
-            height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        }
-        
-        .play-btn:hover {
-            transform: scale(1.05);
-        }
-        
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 24px;
-            padding: 0 8px;
-        }
-        
-        .volume-icon {
-            font-size: 20px;
-            opacity: 0.9;
-        }
-        
-        .volume-slider {
-            flex: 1;
-            height: 6px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            outline: none;
-        }
-        
-        .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            background: white;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .volume-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            background: white;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .playlist {
-            position: relative;
-            z-index: 2;
-            margin-top: 20px;
-        }
-        
-        .playlist-title {
+
+        .modal-title {
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 16px;
-            color: white;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
-        
-        .track-item {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 10px;
+
+        .close-button {
+            background: #F2F2F7;
+            color: #007AFF;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 17px;
+            font-weight: 600;
             cursor: pointer;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 17px;
+            border: none;
+            border-radius: 10px;
+            background: #F2F2F7;
+            margin-bottom: 12px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .modal-textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 17px;
+            border: none;
+            border-radius: 10px;
+            background: #F2F2F7;
+            min-height: 200px;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .save-button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .track-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        .track-item:active {
+
+        .save-button:active {
             transform: scale(0.98);
         }
-        
-        .track-item.active {
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8E8E93;
         }
-        
-        .track-item-icon {
-            font-size: 28px;
-            width: 48px;
-            height: 48px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
         }
-        
-        .track-item-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .track-item-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .track-item-artist {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+
+        .empty-state-text {
+            font-size: 17px;
         }
     </style>
 </head>
 <body>
-    <div class="background" id="background"></div>
-    <div class="overlay"></div>
-    
-    <div class="player-container">
-        <div class="current-track">
-            <div class="track-artwork" id="artwork">🎵</div>
-            <div class="track-info">
-                <h2 id="currentTitle">Выберите трек</h2>
-                <p id="currentArtist">Неизвестный исполнитель</p>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="time-display">
-                    <span id="currentTime">0:00</span>
-                    <span id="duration">0:00</span>
-                </div>
-            </div>
-            <div class="controls">
-                <button class="control-btn" id="prevBtn">⏮</button>
-                <button class="control-btn play-btn" id="playBtn">▶️</button>
-                <button class="control-btn" id="nextBtn">⏭</button>
-            </div>
-            <div class="volume-control">
-                <span class="volume-icon">🔊</span>
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+    <div id="app">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-title">Заметки</div>
+                <button class="add-button" @click="openModal()">+</button>
             </div>
         </div>
-        <div class="playlist">
-            <h3 class="playlist-title">Плейлист</h3>
-            <div id="playlistContainer"></div>
+
+        <div class="search-bar">
+            <input 
+                type="text" 
+                class="search-input" 
+                placeholder="Поиск" 
+                v-model="searchQuery"
+            >
+        </div>
+
+        <div class="notes-container">
+            <div v-if="filteredNotes.length === 0" class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <div class="empty-state-text">
+                    {{ searchQuery ? 'Ничего не найдено' : 'Нет заметок. Создайте первую!' }}
+                </div>
+            </div>
+
+            <div 
+                v-for="note in filteredNotes" 
+                :key="note.id" 
+                class="note-card"
+                @click="openModal(note)"
+            >
+                <button 
+                    class="delete-button" 
+                    @click.stop="deleteNote(note.id)"
+                >×</button>
+                <div class="note-title">{{ note.title || 'Без названия' }}</div>
+                <div class="note-preview">{{ note.content }}</div>
+                <div class="note-date">{{ formatDate(note.date) }}</div>
+            </div>
+        </div>
+
+        <div v-if="showModal" class="modal" @click.self="closeModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">{{ editingNote ? 'Редактировать' : 'Новая заметка' }}</div>
+                    <button class="close-button" @click="closeModal">Готово</button>
+                </div>
+                <input 
+                    type="text" 
+                    class="modal-input" 
+                    placeholder="Заголовок" 
+                    v-model="currentNote.title"
+                    ref="titleInput"
+                >
+                <textarea 
+                    class="modal-textarea" 
+                    placeholder="Начните писать..." 
+                    v-model="currentNote.content"
+                ></textarea>
+                <button class="save-button" @click="saveNote">Сохранить</button>
+            </div>
         </div>
     </div>
-    
+
     <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            document.querySelector('body').style.top = "100px";
-            tg.expand();
-            tg.requestFullscreen?.();
-            tg.disableVerticalSwipes?.();
-            tg.enableClosingConfirmation?.();
-        }
-        
-        const tracks = [
-            {
-                title: "Трек 1",
-                artist: "Исполнитель 1",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-                color: "#667eea"
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    notes: [],
+                    showModal: false,
+                    editingNote: null,
+                    currentNote: {
+                        title: '',
+                        content: ''
+                    },
+                    searchQuery: ''
+                };
             },
-            {
-                title: "Трек 2",
-                artist: "Исполнитель 2",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-                color: "#f093fb"
-            },
-            {
-                title: "Трек 3",
-                artist: "Исполнитель 3",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-                color: "#4facfe"
-            },
-            {
-                title: "Трек 4",
-                artist: "Исполнитель 4",
-                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-                color: "#43e97b"
-            }
-        ];
-        
-        const audio = new Audio();
-        audio.preload = "metadata";
-        let currentTrackIndex = -1;
-        let isPlaying = false;
-        
-        const playBtn = document.getElementById('playBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-        const currentTime = document.getElementById('currentTime');
-        const duration = document.getElementById('duration');
-        const currentTitle = document.getElementById('currentTitle');
-        const currentArtist = document.getElementById('currentArtist');
-        const playlistContainer = document.getElementById('playlistContainer');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const background = document.getElementById('background');
-        const artwork = document.getElementById('artwork');
-        
-        function renderPlaylist() {
-            playlistContainer.innerHTML = '';
-            tracks.forEach((track, index) => {
-                const trackItem = document.createElement('div');
-                trackItem.className = 'track-item';
-                if (index === currentTrackIndex) {
-                    trackItem.classList.add('active');
+            computed: {
+                filteredNotes() {
+                    if (!this.searchQuery) {
+                        return this.notes;
+                    }
+                    const query = this.searchQuery.toLowerCase();
+                    return this.notes.filter(note => 
+                        note.title.toLowerCase().includes(query) || 
+                        note.content.toLowerCase().includes(query)
+                    );
                 }
-                trackItem.innerHTML = `
-                    <div class="track-item-icon">🎵</div>
-                    <div class="track-item-info">
-                        <div class="track-item-title">${track.title}</div>
-                        <div class="track-item-artist">${track.artist}</div>
-                    </div>
-                `;
-                trackItem.onclick = () => loadTrack(index);
-                playlistContainer.appendChild(trackItem);
-            });
-        }
-        
-        function updateBackground(color) {
-            const gradient = `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -30)} 100%)`;
-            background.style.background = gradient;
-            artwork.style.background = gradient;
-        }
-        
-        function adjustColor(color, amount) {
-            const num = parseInt(color.replace("#",""), 16);
-            const r = Math.max(0, Math.min(255, (num >> 16) + amount));
-            const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
-            const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
-            return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
-        }
-        
-        function loadTrack(index) {
-            if (index < 0 || index >= tracks.length) return;
-            currentTrackIndex = index;
-            const track = tracks[index];
-            audio.src = track.url;
-            currentTitle.textContent = track.title;
-            currentArtist.textContent = track.artist;
-            updateBackground(track.color);
-            renderPlaylist();
-            if (isPlaying) {
-                audio.play().catch(e => console.error('Ошибка воспроизведения:', e));
+            },
+            methods: {
+                openModal(note = null) {
+                    if (note) {
+                        this.editingNote = note;
+                        this.currentNote = { ...note };
+                    } else {
+                        this.editingNote = null;
+                        this.currentNote = { title: '', content: '' };
+                    }
+                    this.showModal = true;
+                    this.$nextTick(() => {
+                        if (this.$refs.titleInput) {
+                            this.$refs.titleInput.focus();
+                        }
+                    });
+                },
+                closeModal() {
+                    this.showModal = false;
+                    this.editingNote = null;
+                    this.currentNote = { title: '', content: '' };
+                },
+                saveNote() {
+                    if (!this.currentNote.title && !this.currentNote.content) {
+                        this.closeModal();
+                        return;
+                    }
+
+                    if (this.editingNote) {
+                        const index = this.notes.findIndex(n => n.id === this.editingNote.id);
+                        this.notes[index] = {
+                            ...this.currentNote,
+                            id: this.editingNote.id,
+                            date: new Date().toISOString()
+                        };
+                    } else {
+                        this.notes.unshift({
+                            ...this.currentNote,
+                            id: Date.now(),
+                            date: new Date().toISOString()
+                        });
+                    }
+
+                    this.saveToStorage();
+                    this.closeModal();
+                },
+                deleteNote(id) {
+                    if (confirm('Удалить эту заметку?')) {
+                        this.notes = this.notes.filter(note => note.id !== id);
+                        this.saveToStorage();
+                    }
+                },
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diff = now - date;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+                    if (days === 0) {
+                        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                    } else if (days === 1) {
+                        return 'Вчера';
+                    } else if (days < 7) {
+                        return `${days} дн. назад`;
+                    } else {
+                        return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                    }
+                },
+                saveToStorage() {
+                    const notesData = JSON.stringify(this.notes);
+                    localStorage.setItem('telegram-notes', notesData);
+                },
+                loadFromStorage() {
+                    const notesData = localStorage.getItem('telegram-notes');
+                    if (notesData) {
+                        this.notes = JSON.parse(notesData);
+                    }
+                }
+            },
+            mounted() {
+                this.loadFromStorage();
             }
-            
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: track.title,
-                    artist: track.artist,
-                    album: 'Мой плейлист'
-                });
-                navigator.mediaSession.setActionHandler('play', play);
-                navigator.mediaSession.setActionHandler('pause', pause);
-                navigator.mediaSession.setActionHandler('previoustrack', previousTrack);
-                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
-            }
-        }
-        
-        function play() {
-            if (currentTrackIndex === -1) {
-                loadTrack(0);
-            }
-            audio.play().catch(e => console.error('Ошибка воспроизведения:', e));
-            isPlaying = true;
-            playBtn.textContent = '⏸';
-        }
-        
-        function pause() {
-            audio.pause();
-            isPlaying = false;
-            playBtn.textContent = '▶️';
-        }
-        
-        function togglePlay() {
-            if (isPlaying) {
-                pause();
-            } else {
-                play();
-            }
-        }
-        
-        function previousTrack() {
-            const newIndex = currentTrackIndex > 0 ? currentTrackIndex - 1 : tracks.length - 1;
-            loadTrack(newIndex);
-            if (isPlaying) play();
-        }
-        
-        function nextTrack() {
-            const newIndex = currentTrackIndex < tracks.length - 1 ? currentTrackIndex + 1 : 0;
-            loadTrack(newIndex);
-            if (isPlaying) play();
-        }
-        
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        playBtn.onclick = togglePlay;
-        prevBtn.onclick = previousTrack;
-        nextBtn.onclick = nextTrack;
-        
-        audio.addEventListener('timeupdate', () => {
-            if (audio.duration) {
-                const progress = (audio.currentTime / audio.duration) * 100;
-                progressFill.style.width = progress + '%';
-                currentTime.textContent = formatTime(audio.currentTime);
-            }
-        });
-        
-        audio.addEventListener('loadedmetadata', () => {
-            duration.textContent = formatTime(audio.duration);
-        });
-        
-        audio.addEventListener('ended', nextTrack);
-        
-        progressBar.onclick = (e) => {
-            const rect = progressBar.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            audio.currentTime = percent * audio.duration;
-        };
-        
-        volumeSlider.oninput = (e) => {
-            audio.volume = e.target.value / 100;
-        };
-        
-        renderPlaylist();
-        
-        if (tg) {
-            tg.ready();
-        }
+        }).mount('#app');
     </script>
 </body>
 </html>
